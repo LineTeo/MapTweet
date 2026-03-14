@@ -1,0 +1,12 @@
+# Mavenのビルド出力フォルダ
+/target/
+
+# Eclipseの設定ファイル（これらを除外すると他人がインポートしやすくなります）
+.settings/
+.project
+.classpath
+
+# OSのゴミファイル
+.DS_Store
+Thumbs.db
+/build/
