@@ -1,4 +1,4 @@
-package dao;
+package tweet.dao; // ← 変更
 
 import java.io.File;
 import java.time.LocalDateTime;
@@ -16,7 +16,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import model.Tweet;
+import tweet.model.Tweet; // ← 変更
 
 public class XmlTweetDao implements TweetDao {
 
@@ -50,6 +50,11 @@ public class XmlTweetDao implements TweetDao {
             postedAt.setTextContent(tweet.getPostedAt().toString());
             el.appendChild(postedAt);
 
+		        // ★ userId を追加
+		        Element userId = doc.createElement("userId");
+		        userId.setTextContent(tweet.getUserId() != null ? tweet.getUserId() : "");
+		        el.appendChild(userId);
+
             root.appendChild(el);
             writeXml(doc);
 
@@ -79,12 +84,18 @@ public class XmlTweetDao implements TweetDao {
                         el.getElementsByTagName("lng").item(0).getTextContent()));
                 t.setPostedAt(LocalDateTime.parse(
                         el.getElementsByTagName("postedAt").item(0).getTextContent()));
-                list.add(t);
-            }
+		            
+		            // ★ userId を読み込む（古いデータには要素がない場合も考慮）
+		            NodeList userIdNodes = el.getElementsByTagName("userId");
+		            if (userIdNodes.getLength() > 0) {
+		                t.setUserId(userIdNodes.item(0).getTextContent());
+		            }
+		            
+		            list.add(t);
+		        }
         } catch (Exception e) {
             throw new RuntimeException("XML読み込み失敗", e);
         }
-        // 新しい順に並べ替え
         list.sort((a, b) -> b.getPostedAt().compareTo(a.getPostedAt()));
         return list;
     }
@@ -95,7 +106,6 @@ public class XmlTweetDao implements TweetDao {
             return DocumentBuilderFactory.newInstance()
                     .newDocumentBuilder().parse(f);
         }
-        // ファイルが無ければ新規作成
         Document doc = DocumentBuilderFactory.newInstance()
                 .newDocumentBuilder().newDocument();
         doc.appendChild(doc.createElement("tweets"));

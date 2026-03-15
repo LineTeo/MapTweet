@@ -1,4 +1,4 @@
-package servlet;
+package tweet.servlet;
 
 import java.io.IOException;
 import java.util.List;
@@ -8,10 +8,11 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
-import dao.TweetDao;
-import dao.XmlTweetDao;
-import model.Tweet;
+import tweet.dao.TweetDao;
+import tweet.dao.XmlTweetDao;
+import tweet.model.Tweet;
 
 @WebServlet("/timeline")
 public class TimelineServlet extends HttpServlet {
@@ -29,10 +30,16 @@ public class TimelineServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse responce)
             throws ServletException, IOException {
 
+    	// ★ 未ログインならログイン画面へ
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("loginUser") == null) {
+        	responce.sendRedirect(request.getContextPath() + "/UserLogin");
+            return;
+        }
+        
         List<Tweet> tweets = dao.findAll();
 
         request.setAttribute("tweets", tweets);
-        request.getRequestDispatcher("timeline.jsp")
-                .forward(request, responce);
+        request.getRequestDispatcher("timeline.jsp").forward(request, responce);
     }
 }

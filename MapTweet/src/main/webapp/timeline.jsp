@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="model.Tweet, java.util.List" %>
+<%@ page import="tweet.model.Tweet, java.util.List" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -36,6 +36,13 @@
   <div class="tweet-card">
     <p class="tweet-text"><%= t.getText() %></p>
     <p class="tweet-meta">
+	  <!-- ★ 投稿者名をリンクに変更 -->
+	  <% if (t.getUserId() != null && !t.getUserId().isEmpty()) { %>
+        <a href="profile?id=<%= t.getUserId() %>" style="color:#1a8cff; text-decoration:none;">
+      👤  <%= t.getUserId() %>
+       </a>
+       ／
+      <% } %>    
       <%= t.getPostedAt() %>
       <% if (t.getLatitude() != 0.0 || t.getLongitude() != 0.0) { %>
         ／ 📍 <%= String.format("%.4f", t.getLatitude()) %>,

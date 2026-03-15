@@ -1,7 +1,8 @@
-package dao;
+package tweet.dao;
 
-import model.Tweet;
 import java.util.List;
+
+import tweet.model.Tweet;
 
 public interface TweetDao {
     void save(Tweet tweet);
