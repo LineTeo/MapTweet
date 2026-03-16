@@ -10,8 +10,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import tweet.dao.DbConfig;
+import tweet.dao.JdbcTweetDao;
 import tweet.dao.TweetDao;    // ← 変更
-import tweet.dao.XmlTweetDao; // ← 変更
 import tweet.model.Tweet;     // ← 変更
 
 @WebServlet("/post")
@@ -21,8 +22,9 @@ public class PostServlet extends HttpServlet {
 
     @Override
     public void init() {
-        String filePath = getServletContext().getRealPath("/WEB-INF/data/tweets.xml");
-        dao = new XmlTweetDao(filePath);
+//        String filePath = getServletContext().getRealPath("/WEB-INF/data/tweets.xml");
+//        dao = new XmlTweetDao(filePath);
+        dao = new JdbcTweetDao(DbConfig.URL);
     }
 
     // ★ セッションチェック共通メソッド

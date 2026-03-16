@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import tweet.dao.DbConfig;
+import tweet.dao.JdbcUserDAO;
 import tweet.dao.UserDAO;
 import tweet.model.User;
 
@@ -36,7 +38,8 @@ public class RegisterUser extends HttpServlet {
       User registerUser = (User) session.getAttribute("registerUser");
 
       // 登録処理の呼び出し
-      UserDAO dao = new UserDAO(getServletContext());
+//    UserDAO dao = new UserDAO(getServletContext());
+    JdbcUserDAO dao = new JdbcUserDAO(DbConfig.URL);
       
       //      RegisterUserLogic logic = new RegisterUserLogic();
 //      logic.execute(registerUser, getServletContext());

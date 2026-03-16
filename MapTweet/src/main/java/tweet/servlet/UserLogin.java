@@ -10,7 +10,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-import tweet.dao.UserDAO;
+import tweet.dao.DbConfig;
+import tweet.dao.JdbcUserDAO;
 import tweet.model.User;
 
 @WebServlet("/UserLogin")
@@ -45,7 +46,9 @@ public class UserLogin extends HttpServlet {
         String id = request.getParameter("id");
         String pass = request.getParameter("pass");
 
-        UserDAO dao = new UserDAO(getServletContext());
+//        UserDAO dao = new UserDAO(getServletContext());
+        JdbcUserDAO dao = new JdbcUserDAO(DbConfig.URL);
+
         User loginUser = dao.login(id, pass);
         HttpSession session = request.getSession();
 

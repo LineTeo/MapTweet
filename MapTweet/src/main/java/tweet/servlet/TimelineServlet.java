@@ -10,8 +10,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import tweet.dao.DbConfig;
+import tweet.dao.JdbcTweetDao;
 import tweet.dao.TweetDao;
-import tweet.dao.XmlTweetDao;
 import tweet.model.Tweet;
 
 @WebServlet("/timeline")
@@ -21,9 +22,9 @@ public class TimelineServlet extends HttpServlet {
 
     @Override
     public void init() {
-        String filePath = getServletContext()
-                .getRealPath("/WEB-INF/data/tweets.xml");
-        dao = new XmlTweetDao(filePath);
+//        String filePath = getServletContext().getRealPath("/WEB-INF/data/tweets.xml");
+//      dao = new XmlTweetDao(filePath);
+      dao = new JdbcTweetDao(DbConfig.URL);
     }
 
     @Override
