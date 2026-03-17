@@ -8,6 +8,8 @@ import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
 
+import tweet.dao.DbConfig;
+
 @WebListener
 public class AppInitListener implements ServletContextListener {
 	
@@ -18,7 +20,15 @@ public class AppInitListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        try (Connection con = DriverManager.getConnection(JDBC_URL,DB_USER,DB_PASS);
+        // JDBCドライバを読み込む
+        try {
+            Class.forName("org.h2.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException("JDBCドライバを読み込めませんでした");
+        }
+//        try (Connection con = DriverManager.getConnection(JDBC_URL,DB_USER,DB_PASS);
+        try (Connection con = DriverManager.getConnection(DbConfig.URL);
+        
              Statement st = con.createStatement()) {
 
             st.execute("""
@@ -45,6 +55,7 @@ public class AppInitListener implements ServletContextListener {
             System.out.println("DB初期化完了");
 
         } catch (Exception e) {
+        	e.printStackTrace();
             throw new RuntimeException("DB初期化失敗", e);
         }
     }

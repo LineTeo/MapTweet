@@ -11,7 +11,6 @@ import jakarta.servlet.http.HttpSession;
 
 import tweet.dao.DbConfig;
 import tweet.dao.JdbcUserDAO;
-import tweet.dao.UserDAO;
 import tweet.model.User;
 
 @WebServlet("/RegisterUser")
@@ -71,7 +70,8 @@ public class RegisterUser extends HttpServlet {
     // 登録するユーザーの情報を設定
     User registerUser = new User(id, pass, name, profile);
     // 登録処理の呼び出し
-    UserDAO dao = new UserDAO(getServletContext());
+//  UserDAO dao = new UserDAO(getServletContext());
+  JdbcUserDAO dao = new JdbcUserDAO(DbConfig.URL);
     
     HttpSession session = request.getSession();
     session.setAttribute("registerUser", registerUser);
