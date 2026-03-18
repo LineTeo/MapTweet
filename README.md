@@ -80,7 +80,7 @@ WebContent/
 - JDK 17 以上
 - Apache Tomcat 10.x
 - ~~opencsv 5.9（`WEB-INF/lib/` に配置）~~
-- データベースが接続済みで、そのURLをDBConfig.javaに記述済みであること
+- データベースが接続済みであること
 ### 手順
 
 1. リポジトリをクローン
@@ -95,7 +95,8 @@ git clone https://github.com/your-username/your-repo.git
 WebContent/WEB-INF/data/
 ```
 
-3. opencsv の jar を `WEB-INF/lib/` に配置
+~~3. opencsv の jar を `WEB-INF/lib/` に配置~~
+3. DbConfig.javaにデータベースのURLを記述
 
 4. Tomcat にデプロイして起動
 
@@ -132,9 +133,9 @@ http://localhost:8080/{プロジェクト名}/UserLogin
 
 ## 注意事項
 
-- `WEB-INF/data/` フォルダは **手動で作成** が必要です。
+- ~~`WEB-INF/data/` フォルダは **手動で作成** が必要です。~~
 - Tomcat 10 以降は `javax.servlet.*` ではなく `jakarta.servlet.*` を使用してください。
-- データ保存は XML / CSV ファイルのため、本番運用には適していません。将来的には `TweetDao` インタフェースと `UserDAO` クラスをそれぞれ JDBC 実装に差し替えることで SQL 移行が可能です。
+- ~~データ保存は XML / CSV ファイルのため、本番運用には適していません。将来的には `TweetDao` インタフェースと `UserDAO` クラスをそれぞれ JDBC 実装に差し替えることで SQL 移行が可能です。~~
 
 ---
 
