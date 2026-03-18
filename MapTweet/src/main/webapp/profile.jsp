@@ -1,7 +1,9 @@
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="tweet.model.User" %>
 <%
     User targetUser = (User) request.getAttribute("targetUser");
+
 %>
 <!DOCTYPE html>
 <html>
@@ -30,9 +32,9 @@
   <p>ユーザーが見つかりませんでした。</p>
 <% } else { %>
   <div class="profile-card">
-    <p class="profile-name"><%= targetUser.getName() %></p>
-    <p class="profile-id">@<%= targetUser.getId() %></p>
-    <p class="profile-bio"><%= targetUser.getProfile() %></p>
+    <p class="profile-name">${fn:escapeXml(targetUser.name)}</p>
+    <p class="profile-id">@${fn:escapeXml(targetUser.id)}</p>
+    <p class="profile-bio">${fn:escapeXml(targetUser.profile)}</p>
   </div>
 <% } %>
 

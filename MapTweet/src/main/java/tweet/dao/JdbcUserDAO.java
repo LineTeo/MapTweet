@@ -1,10 +1,16 @@
 package tweet.dao;
 
-import tweet.model.User;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.mindrot.jbcrypt.BCrypt;
+
+import tweet.model.User;
 
 public class JdbcUserDAO {
 
@@ -69,7 +75,7 @@ public class JdbcUserDAO {
 
     // ログイン認証
     public User login(String id, String pass) {
-        String sql = "SELECT * FROM users WHERE id = ? AND pass = ?";
+        String sql = "SELECT * FROM users WHERE id = ?";		// hash化した為、sqlでパスワード比較削除→AND pass = ?";
 
         try (Connection con = getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -118,13 +124,18 @@ public class JdbcUserDAO {
         if (exists(user.getId())) {
             return false;
         }
+
+        // ★ パスワードをハッシュ化してからDBに保存
+        String hashedPass = BCrypt.hashpw(user.getPass(), BCrypt.gensalt());        
+        
         String sql = "INSERT INTO users (id, pass, name, profile) VALUES (?, ?, ?, ?)";
 
         try (Connection con = getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, user.getId());
-            ps.setString(2, user.getPass());
+//            ps.setString(2, user.getPass());     	//プレーンテキストは危険
+            ps.setString(2, hashedPass);       		//ハッシュ化して保存
             ps.setString(3, user.getName());
             ps.setString(4, user.getProfile());
             ps.executeUpdate();

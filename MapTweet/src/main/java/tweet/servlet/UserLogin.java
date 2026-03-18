@@ -27,9 +27,16 @@ public class UserLogin extends HttpServlet {
             forwardPath = "WEB-INF/jsp/loginForm.jsp";
         } else if (action.equals("done")) {
             // ★ ログアウト処理：loginUser を削除
-            HttpSession session = request.getSession();
-            session.removeAttribute("loginUser");
-            session.removeAttribute("errResponse");
+            //HttpSession session = request.getSession();
+            //session.removeAttribute("loginUser");
+            //session.removeAttribute("errResponse");
+            // ★ 変更後：セッション全体を破棄してから新規セッションで遷移
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                session.invalidate(); // セッションを完全に破棄
+            }
+           
+            
             forwardPath = "WEB-INF/jsp/loginForm.jsp";
         } else {
             forwardPath = "WEB-INF/jsp/loginForm.jsp";
