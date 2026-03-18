@@ -81,15 +81,20 @@ public class JdbcUserDAO {
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, id);
-            ps.setString(2, pass);
+//            ps.setString(2, pass);							// hash化で変更
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return new User(
-                        rs.getString("id"),
-                        rs.getString("pass"),
-                        rs.getString("name"),
-                        rs.getString("profile")
-                    );
+                	String hashedPass = rs.getString("pass");
+                	
+                    // ★ BCrypt.checkpw() で検証
+                    if (BCrypt.checkpw(pass, hashedPass)) {
+                        return new User(
+                            rs.getString("id"),
+                            rs.getString("pass"),
+                            rs.getString("name"),
+                            rs.getString("profile")
+                        );
+                    }
                 }
             }
 
