@@ -26,14 +26,16 @@ public class RegisterUser extends HttpServlet {
     String action = request.getParameter("action");
 
     // 「登録の開始」をリクエストされたときの処理
+    HttpSession session = request.getSession();
     if (action == null) {
+        session.setAttribute("errResponse", 2);
+    	
       // フォワード先を設定
       forwardPath = "WEB-INF/jsp/registerForm.jsp";
     }
     // 登録確認画面から「登録実行」をリクエストされたときの処理
     else if (action.equals("done")) {
       // セッションスコープに保存された登録ユーザ
-      HttpSession session = request.getSession();
       User registerUser = (User) session.getAttribute("registerUser");
 
       // 登録処理の呼び出し
@@ -76,19 +78,27 @@ public class RegisterUser extends HttpServlet {
     HttpSession session = request.getSession();
     session.setAttribute("registerUser", registerUser);
     
-    if (dao.exists(id)) {
-        // セッションスコープに登録ユーザーを保存
+    if (dao.exists(id)) { //　すでにIDが存在するとき
+        // セッションスコープにエラーレスポンスを登録
         session.setAttribute("errResponse", 1);
     	
         // フォワード
         request.getRequestDispatcher("WEB-INF/jsp/registerForm.jsp").forward(request, response);      	
-    }else {
-        // セッションスコープに登録ユーザーを保存
-        session.setAttribute("registerUser", registerUser);
-        session.setAttribute("errResponse", 0);
+    }else
+    	if(id == "" || pass == ""){ //idまたはパスワードが空欄の時
+            session.setAttribute("errResponse", 3);
+        	
+            // フォワード
+            request.getRequestDispatcher("WEB-INF/jsp/registerForm.jsp").forward(request, response);      	
+    		
+    	} else {
+    		// セッションスコープに登録ユーザーを保存
+    		session.setAttribute("registerUser", registerUser);
+    		session.setAttribute("errResponse", 0);
 
-        // フォワード
-        request.getRequestDispatcher("WEB-INF/jsp/registerConfirm.jsp").forward(request, response);
-    }
-  }
+    		// フォワード
+    		request.getRequestDispatcher("WEB-INF/jsp/registerConfirm.jsp").forward(request, response);
+    
+    	}
+	}
 }

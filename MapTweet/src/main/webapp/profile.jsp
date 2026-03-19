@@ -3,7 +3,7 @@
 <%@ page import="tweet.model.User" %>
 <%
     User targetUser = (User) request.getAttribute("targetUser");
-
+    User loginUser = (User) session.getAttribute("loginUser");
 %>
 <!DOCTYPE html>
 <html>
@@ -18,27 +18,31 @@
       padding: 2rem;
       background: #fafafa;
     }
-    .profile-name { font-size: 22px; font-weight: bold; margin-bottom: 0.3rem; }
-    .profile-id   { font-size: 13px; color: #888; margin-bottom: 1rem; }
-    .profile-bio  { font-size: 15px; line-height: 1.6; white-space: pre-wrap; }
+    .item   { font-size: 16px; color: #883; margin-bottom: 0.1rem; }
+    .profile-name { font-size: 20px; font-weight: bold; margin-bottom: 2rem; }
+    .profile-bio  { font-size: 16px; line-height: 1.6; white-space: pre-wrap; }
     .back-link    { display: inline-block; margin-top: 1.5rem; color: #555; }
   </style>
 </head>
 <body>
 
-<h2>プロフィール</h2>
+<h2>${fn:escapeXml(targetUser.id)} さんのプロフィール</h2>
 
 <% if (targetUser == null) { %>
   <p>ユーザーが見つかりませんでした。</p>
 <% } else { %>
   <div class="profile-card">
+    <p class="item">名前</p>
     <p class="profile-name">${fn:escapeXml(targetUser.name)}</p>
-    <p class="profile-id">@${fn:escapeXml(targetUser.id)}</p>
+    <p class="item">プロフィール</p>
     <p class="profile-bio">${fn:escapeXml(targetUser.profile)}</p>
   </div>
 <% } %>
 
 <a class="back-link" href="timeline">← タイムラインへ戻る</a>
 
+<% if (targetUser.getId() == loginUser.getId()){ %>
+<a class="back-link" href="EditProfile">プロファイル編集→</a>
+<% } %>
 </body>
 </html>

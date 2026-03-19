@@ -33,9 +33,13 @@
     <a href="post">＋ つぶやく</a>
   </div>
   <div>
-    <%-- ログインユーザー名の表示＋ログアウトリンク --%>
-    <span style="font-size:13px; color:#666; margin-right:1rem;">
-      👤 <%= loginUser != null ? loginUser.getName() : "" %>
+    <%-- ログインユーザー名の表示＋ログアウトリンク--%> 
+    <span style="font-size:13px; color:#666; margin-right:1rem;">      
+      	  <% if (loginUser != null) { %>
+        <a href="profile?id=<%= loginUser.getId() %>" style="color:#1a8cff; text-decoration:none;">
+      👤  ${fn:escapeXml(loginUser.getId())}
+       </a>
+       <% } %>
     </span>
     <a href="UserLogin?action=done"
        style="font-size:13px; color:#e55; text-decoration:none;"

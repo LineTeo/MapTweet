@@ -1,0 +1,1762 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+.gitignore
+pom.xml
+README.md
+src/main/java/tweet/dao/DbConfig.java
+src/main/java/tweet/dao/JdbcTweetDao.java
+src/main/java/tweet/dao/JdbcUserDAO.java
+src/main/java/tweet/dao/TweetDao.java
+src/main/java/tweet/dao/UserDAO.java
+src/main/java/tweet/dao/XmlTweetDao.java
+src/main/java/tweet/listener/AppInitListener.java
+src/main/java/tweet/model/Tweet.java
+src/main/java/tweet/model/User.java
+src/main/java/tweet/servlet/PostServlet.java
+src/main/java/tweet/servlet/ProfileServlet.java
+src/main/java/tweet/servlet/RegisterUser.java
+src/main/java/tweet/servlet/TimelineServlet.java
+src/main/java/tweet/servlet/UserLogin.java
+src/main/webapp/META-INF/MANIFEST.MF
+src/main/webapp/post.jsp
+src/main/webapp/profile.jsp
+src/main/webapp/timeline.jsp
+src/main/webapp/WEB-INF/jsp/loginForm.jsp
+src/main/webapp/WEB-INF/jsp/registerConfirm.jsp
+src/main/webapp/WEB-INF/jsp/registerDone.jsp
+src/main/webapp/WEB-INF/jsp/registerForm.jsp
+src/main/webapp/WEB-INF/lib/h2-2.4.240.jar
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path=".gitignore">
+# Mavenのビルド出力フォルダ
+/target/
+
+# Eclipseの設定ファイル（これらを除外すると他人がインポートしやすくなります）
+.settings/
+.project
+.classpath
+
+# OSのゴミファイル
+.DS_Store
+Thumbs.db
+/build/
+</file>
+
+<file path="pom.xml">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>MapTweet</groupId>
+  <artifactId>MapTweet</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>war</packaging>
+  <dependencies>
+    <dependency>
+      <groupId>com.opencsv</groupId>
+      <artifactId>opencsv</artifactId>
+      <version>5.9</version>
+    </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>2.4.240</version>
+	</dependency>
+	<!-- JSTL -->
+	<dependency>
+    	<groupId>jakarta.servlet.jsp.jstl</groupId>
+	    <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
+    	<version>3.0.0</version>
+	</dependency>
+	<dependency>
+    	<groupId>org.glassfish.web</groupId>
+    	<artifactId>jakarta.servlet.jsp.jstl</artifactId>
+    	<version>3.0.1</version>
+	</dependency>
+	<dependency>
+    	<groupId>org.mindrot</groupId>
+    	<artifactId>jbcrypt</artifactId>
+	    <version>0.4</version>
+	</dependency>
+ </dependencies> 
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+        <configuration>
+          <release>21</release>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>3.2.3</version>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+</file>
+
+<file path="README.md">
+# つぶやきアプリ（Java / Servlet / JSP + 地図機能）
+
+Java + Servlet + JSP で作る「場所情報付きつぶやきアプリ」。  
+地図ライブラリに **Leaflet.js + OpenStreetMap**（無料・APIキー不要）を使用。  
+データ保存は XML ファイルで行い、DAO パターンにより将来の SQL 移行に対応できる構成にしている。
+
+---
+
+## 技術スタック
+
+| 項目 | 内容 |
+|------|------|
+| サーバーサイド | Java / Jakarta Servlet / JSP |
+| サーブレットコンテナ | Apache Tomcat 10.x |
+| 地図ライブラリ | Leaflet.js 1.9.4 |
+| 地図データ | OpenStreetMap（無料） |
+| データ保存 | XML ファイル（`WEB-INF/data/tweets.xml`） |
+| import パッケージ | `jakarta.servlet.*`（Tomcat 10 以降） |
+
+> Tomcat 9 以前を使う場合は `jakarta.servlet.*` を `javax.servlet.*` に読み替えること。
+
+---
+
+## ファイル構成
+
+```
+src/
+├── model/
+│   └── Tweet.java             ← データ Bean
+├── dao/
+│   ├── TweetDao.java          ← インタフェース（差し替えポイント）
+│   └── XmlTweetDao.java       ← XML 実装（現在）
+└── servlet/
+    ├── PostServlet.java
+    └── TimelineServlet.java
+
+WebContent/
+├── post.jsp
+├── timeline.jsp
+└── WEB-INF/
+    ├── web.xml
+    └── data/
+        └── tweets.xml         ← 永続化ファイル（自動生成）
+```
+
+> `WEB-INF/data/` フォルダは手動で作成しておく。  
+> `tweets.xml` は初回投稿時に `XmlTweetDao` が自動生成する。
+
+---
+
+## アーキテクチャ設計（DAO パターン）
+
+サーブレットは `TweetDao` インタフェースしか知らない。  
+`XmlTweetDao` か `JdbcTweetDao` かは意識しない。
+
+```
+[post.jsp] フォーム送信
+    ↓ POST /post
+[PostServlet] text / lat / lng を受け取り → dao.save()
+    ↓ リダイレクト
+[TimelineServlet] GET /timeline → dao.findAll()
+    ↓ forward
+[timeline.jsp] 一覧表示
+```
+
+---
+
+## XML スキーマ
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<tweets>
+  <tweet>
+    <text>桜が咲いてた！</text>
+    <lat>35.6762</lat>
+    <lng>139.6503</lng>
+    <postedAt>2026-03-14T10:32:00</postedAt>
+  </tweet>
+</tweets>
+```
+
+---
+
+## 将来の発展
+
+### ログイン機能を付ける
+
+別のサーブレット演習で作成したユーザー登録とログイン機能を合体させ、登録ユーザーのみ書き込み可能にする。
+
+### SQL 移行
+
+1. `JdbcTweetDao` クラスを新規作成し `TweetDao` を `implements` する
+2. `PostServlet` と `TimelineServlet` の `init()` 内の 1 行を変更する
+
+```java
+// 変更前
+dao = new XmlTweetDao(filePath);
+
+// 変更後
+dao = new JdbcTweetDao(/* DB 接続情報 */);
+```
+
+サーブレットも JSP も一切触らなくてよい。
+
+---
+
+## セットアップ
+
+1. `WEB-INF/data/` フォルダを手動で作成する
+2. Tomcat 10.x にデプロイする
+3. ブラウザで `/post` にアクセスして投稿する
+4. 投稿後、`/timeline` に自動遷移して一覧が表示される
+
+---
+
+## 注意事項
+
+- ファイルパスの取得には `getServletContext().getRealPath()` を使う
+- `tweets.xml` を `WEB-INF` 以下に置くことでブラウザからの直接アクセスを防ぐ
+- Tomcat 10 以降では `javax.servlet.*` ではなく `jakarta.servlet.*` を使う
+</file>
+
+<file path="src/main/java/tweet/dao/DbConfig.java">
+package tweet.dao;
+
+public class DbConfig {
+    // H2の埋め込みモード（ファイルで永続化）
+    public static final String URL =
+//        "jdbc:h2:~/tweetapp;AUTO_SERVER=TRUE";
+//    	"jdbc:h2:tcp://localhost/~/tweetapp;AUTO_SERVER=TRUE";
+    		 "jdbc:h2:tcp://localhost/~/example;USER=sa;PASSWORD=";
+
+    // ※ Eclipseで確認したURLに合わせて変更してください
+}
+</file>
+
+<file path="src/main/java/tweet/dao/JdbcTweetDao.java">
+package tweet.dao;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+
+import tweet.model.Tweet;
+
+public class JdbcTweetDao implements TweetDao {
+
+    private final String url;
+
+    public JdbcTweetDao(String url) {
+        this.url = url;
+    }
+
+    private Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(url);
+    }
+
+    @Override
+    public void save(Tweet tweet) {
+        String sql = "INSERT INTO tweets (text, latitude, longitude, posted_at, user_id) "
+                   + "VALUES (?, ?, ?, ?, ?)";
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, tweet.getText());
+            ps.setDouble(2, tweet.getLatitude());
+            ps.setDouble(3, tweet.getLongitude());
+            ps.setTimestamp(4, Timestamp.valueOf(tweet.getPostedAt()));
+            ps.setString(5, tweet.getUserId());
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new RuntimeException("ツイート保存失敗", e);
+        }
+    }
+
+    @Override
+    public List<Tweet> findAll() {
+        String sql = "SELECT * FROM tweets ORDER BY posted_at DESC";
+        List<Tweet> list = new ArrayList<>();
+
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Tweet t = new Tweet();
+                t.setText(rs.getString("text"));
+                t.setLatitude(rs.getDouble("latitude"));
+                t.setLongitude(rs.getDouble("longitude"));
+                t.setPostedAt(rs.getTimestamp("posted_at").toLocalDateTime());
+                t.setUserId(rs.getString("user_id"));
+                list.add(t);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("ツイート取得失敗", e);
+        }
+        return list;
+    }
+}
+</file>
+
+<file path="src/main/java/tweet/dao/JdbcUserDAO.java">
+package tweet.dao;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.mindrot.jbcrypt.BCrypt;
+
+import tweet.model.User;
+
+public class JdbcUserDAO {
+
+    private final String url;
+
+    public JdbcUserDAO(String url) {
+        this.url = url;
+    }
+
+    private Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(url);
+    }
+
+    // 全ユーザー取得
+    public List<User> findAll() {
+        String sql = "SELECT * FROM users";
+        List<User> list = new ArrayList<>();
+
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(new User(
+                    rs.getString("id"),
+                    rs.getString("pass"),
+                    rs.getString("name"),
+                    rs.getString("profile")
+                ));
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("ユーザー取得失敗", e);
+        }
+        return list;
+    }
+
+    // IDで1件取得
+    public User findById(String id) {
+        String sql = "SELECT * FROM users WHERE id = ?";
+
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new User(
+                        rs.getString("id"),
+                        rs.getString("pass"),
+                        rs.getString("name"),
+                        rs.getString("profile")
+                    );
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("ユーザー取得失敗", e);
+        }
+        return null;
+    }
+
+    // ログイン認証
+    public User login(String id, String pass) {
+        String sql = "SELECT * FROM users WHERE id = ?";		// hash化した為、sqlでパスワード比較削除→AND pass = ?";
+
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, id);
+//            ps.setString(2, pass);							// hash化で変更
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                	String hashedPass = rs.getString("pass");
+                	
+                    // ★ BCrypt.checkpw() で検証
+                    if (BCrypt.checkpw(pass, hashedPass)) {
+                        return new User(
+                            rs.getString("id"),
+                            rs.getString("pass"),
+                            rs.getString("name"),
+                            rs.getString("profile")
+                        );
+                    }
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("ログイン失敗", e);
+        }
+        return null;
+    }
+
+    // ID存在チェック
+    public boolean exists(String id) {
+        String sql = "SELECT COUNT(*) FROM users WHERE id = ?";
+
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("ID存在チェック失敗", e);
+        }
+        return false;
+    }
+
+    // ユーザー登録
+    public boolean insert(User user) {
+        if (exists(user.getId())) {
+            return false;
+        }
+
+        // ★ パスワードをハッシュ化してからDBに保存
+        String hashedPass = BCrypt.hashpw(user.getPass(), BCrypt.gensalt());        
+        
+        String sql = "INSERT INTO users (id, pass, name, profile) VALUES (?, ?, ?, ?)";
+
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, user.getId());
+//            ps.setString(2, user.getPass());     	//プレーンテキストは危険
+            ps.setString(2, hashedPass);       		//ハッシュ化して保存
+            ps.setString(3, user.getName());
+            ps.setString(4, user.getProfile());
+            ps.executeUpdate();
+            return true;
+
+        } catch (SQLException e) {
+            throw new RuntimeException("ユーザー登録失敗", e);
+        }
+    }
+}
+</file>
+
+<file path="src/main/java/tweet/dao/TweetDao.java">
+package tweet.dao;
+
+import java.util.List;
+
+import tweet.model.Tweet;
+
+public interface TweetDao {
+    void save(Tweet tweet);
+    List<Tweet> findAll();
+}
+</file>
+
+<file path="src/main/java/tweet/dao/UserDAO.java">
+package tweet.dao;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.servlet.ServletContext;
+
+import com.opencsv.CSVReader;
+import com.opencsv.CSVWriter;
+
+import tweet.model.User;
+
+
+public class UserDAO {
+/********************************************
+ * 　ユーザー情報を記録したCSVファイルに明日セスするためのクラス
+ *
+ *　OpenCSVを使って入出力をすることでCSVファイルを扱う際に改行やカンマなどの問題を回避
+ *　するといった対策をここに集中することで管理を楽にする
+ *　将来的にデータベースへのアクセスをする場合もこのクラスだけを差し替えることで対応する
+********************************************/
+
+	String dataPath; 	//データファイルのパスを格納する
+    File file; 			// データファイルを格納する
+
+    public UserDAO( ServletContext context) {
+        this.dataPath = context.getRealPath("/WEB-INF/data/recordData.csv");
+        this.file = new File(dataPath);
+	}
+
+
+    
+    /********************************************
+     * 　全ユーザーデータを格納したList<>を返すメソッド
+     * 　他のメソッドから呼び出される
+    ********************************************/
+	
+	public List<User> findAll() {
+
+	    List<User> list = new ArrayList<>();
+
+	    if (!file.exists()) {
+	        return list;
+	    }
+
+	    try (CSVReader reader =
+	            new CSVReader(
+	                    new InputStreamReader(
+	                            new FileInputStream(file),
+	                            StandardCharsets.UTF_8))) {
+
+	        List<String[]> rows = reader.readAll();
+
+	        for (int i = 1; i < rows.size(); i++) {
+
+	            String[] row = rows.get(i);
+
+	            User user = new User(
+	                    row[0],
+	                    row[1],
+	                    row[2],
+	                    row[3]
+	            );
+
+	            list.add(user);
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+
+	    return list;
+	}
+		
+
+	public boolean insert(User user) {
+        // すでに同じIDが存在する場合は登録失敗とする
+        if (exists(user.getId())) {
+            System.out.println("挿入失敗：IDが既に存在します。");
+            return false;
+        }
+
+        
+        boolean isNewFile = !file.exists();
+
+        // 追記モードでCSVWriterをオープン
+        // FileOutputStream(file, true) の true が「追記」を意味します
+        try (CSVWriter writer =
+        		new CSVWriter(
+        			new OutputStreamWriter(
+        				new FileOutputStream(file, true), 
+        				StandardCharsets.UTF_8))) {
+        	// 新規ファイルならヘッダーを書き込む
+            if (isNewFile) {
+                String[] header = {"ログインID", "パスワード", "名前", "自己紹介"};
+                writer.writeNext(header);
+            }
+            // UserオブジェクトをString配列に変換
+            String[] row = {
+                user.getId(),
+                user.getPass(),
+                user.getName(),
+                user.getProfile()            };
+
+            // ファイルに書き出し
+            writer.writeNext(row);
+            System.out.println("挿入成功：" + user.getId());
+            return true;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+	
+	 // ID存在チェック
+    public boolean exists(String id) {
+
+        if (!file.exists()) {
+            return false;
+        }
+
+        try (CSVReader reader =
+                new CSVReader(
+                        new InputStreamReader(
+                                new FileInputStream(file),
+                                StandardCharsets.UTF_8))) {
+
+            List<String[]> list = reader.readAll();
+
+            for (int i = 1; i < list.size(); i++) { // ヘッダー除外
+                String[] row = list.get(i);
+
+                if (row[0].equals(id)) {
+                    return true; //一致するIDがあればTrueを返す
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+	
+ // ★ IDでユーザーを1件取得するメソッドを追加
+    public User findById(String id) {
+        List<User> list = findAll();
+        for (User user : list) {
+            if (user.getId().equals(id)) {
+                return user;
+            }
+        }
+        return null; // 見つからない場合
+    }	
+	public User login(String id,String pass) {
+		List<User> list = findAll();
+		for (User someOne : list) {
+			if (someOne.getId().equals(id) && someOne.getPass().equals(pass)) {
+				return someOne; // 一致するユーザーが見つかった
+			}
+		}
+		return null; // 見つからなかった
+	}
+}
+</file>
+
+<file path="src/main/java/tweet/dao/XmlTweetDao.java">
+package tweet.dao; // ← 変更
+
+import java.io.File;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+import tweet.model.Tweet; // ← 変更
+
+public class XmlTweetDao implements TweetDao {
+
+    private final String filePath;
+
+    public XmlTweetDao(String filePath) {
+        this.filePath = filePath;
+    }
+
+    @Override
+    public void save(Tweet tweet) {
+        try {
+            Document doc = loadOrCreate();
+            Element root = doc.getDocumentElement();
+
+            Element el = doc.createElement("tweet");
+
+            Element text = doc.createElement("text");
+            text.setTextContent(tweet.getText());
+            el.appendChild(text);
+
+            Element lat = doc.createElement("lat");
+            lat.setTextContent(String.valueOf(tweet.getLatitude()));
+            el.appendChild(lat);
+
+            Element lng = doc.createElement("lng");
+            lng.setTextContent(String.valueOf(tweet.getLongitude()));
+            el.appendChild(lng);
+
+            Element postedAt = doc.createElement("postedAt");
+            postedAt.setTextContent(tweet.getPostedAt().toString());
+            el.appendChild(postedAt);
+
+		        // ★ userId を追加
+		        Element userId = doc.createElement("userId");
+		        userId.setTextContent(tweet.getUserId() != null ? tweet.getUserId() : "");
+		        el.appendChild(userId);
+
+            root.appendChild(el);
+            writeXml(doc);
+
+        } catch (Exception e) {
+            throw new RuntimeException("XML保存失敗", e);
+        }
+    }
+
+    @Override
+    public List<Tweet> findAll() {
+        List<Tweet> list = new ArrayList<>();
+        try {
+            File f = new File(filePath);
+            if (!f.exists()) return list;
+
+            Document doc = DocumentBuilderFactory.newInstance()
+                    .newDocumentBuilder().parse(f);
+            NodeList nodes = doc.getElementsByTagName("tweet");
+
+            for (int i = 0; i < nodes.getLength(); i++) {
+                Element el = (Element) nodes.item(i);
+                Tweet t = new Tweet();
+                t.setText(el.getElementsByTagName("text").item(0).getTextContent());
+                t.setLatitude(Double.parseDouble(
+                        el.getElementsByTagName("lat").item(0).getTextContent()));
+                t.setLongitude(Double.parseDouble(
+                        el.getElementsByTagName("lng").item(0).getTextContent()));
+                t.setPostedAt(LocalDateTime.parse(
+                        el.getElementsByTagName("postedAt").item(0).getTextContent()));
+		            
+		            // ★ userId を読み込む（古いデータには要素がない場合も考慮）
+		            NodeList userIdNodes = el.getElementsByTagName("userId");
+		            if (userIdNodes.getLength() > 0) {
+		                t.setUserId(userIdNodes.item(0).getTextContent());
+		            }
+		            
+		            list.add(t);
+		        }
+        } catch (Exception e) {
+            throw new RuntimeException("XML読み込み失敗", e);
+        }
+        list.sort((a, b) -> b.getPostedAt().compareTo(a.getPostedAt()));
+        return list;
+    }
+
+    private Document loadOrCreate() throws Exception {
+        File f = new File(filePath);
+        if (f.exists()) {
+            return DocumentBuilderFactory.newInstance()
+                    .newDocumentBuilder().parse(f);
+        }
+        Document doc = DocumentBuilderFactory.newInstance()
+                .newDocumentBuilder().newDocument();
+        doc.appendChild(doc.createElement("tweets"));
+        return doc;
+    }
+
+    private void writeXml(Document doc) throws Exception {
+        Transformer t = TransformerFactory.newInstance().newTransformer();
+        t.setOutputProperty(OutputKeys.INDENT, "yes");
+        t.transform(new DOMSource(doc), new StreamResult(new File(filePath)));
+    }
+}
+</file>
+
+<file path="src/main/java/tweet/listener/AppInitListener.java">
+package tweet.listener;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
+
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
+import jakarta.servlet.annotation.WebListener;
+
+import tweet.dao.DbConfig;
+
+@WebListener
+public class AppInitListener implements ServletContextListener {
+	
+	  // データベース接続に使用する情報
+	  private final String JDBC_URL = "jdbc:h2:tcp://localhost/~/example";
+	  private final String DB_USER = "sa";
+	  private final String DB_PASS = "";
+
+    @Override
+    public void contextInitialized(ServletContextEvent sce) {
+        // JDBCドライバを読み込む
+        try {
+            Class.forName("org.h2.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException("JDBCドライバを読み込めませんでした");
+        }
+//        try (Connection con = DriverManager.getConnection(JDBC_URL,DB_USER,DB_PASS);
+        try (Connection con = DriverManager.getConnection(DbConfig.URL);
+        
+             Statement st = con.createStatement()) {
+
+            st.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id      VARCHAR(50)  PRIMARY KEY,
+                    pass    VARCHAR(100) NOT NULL,
+                    name    VARCHAR(100) NOT NULL,
+                    profile VARCHAR(500)
+                )
+            """);
+
+            st.execute("""
+                CREATE TABLE IF NOT EXISTS tweets (
+                    tweet_id  INT          PRIMARY KEY AUTO_INCREMENT,
+                    text      VARCHAR(500) NOT NULL,
+                    latitude  DOUBLE       NOT NULL DEFAULT 0.0,
+                    longitude DOUBLE       NOT NULL DEFAULT 0.0,
+                    posted_at TIMESTAMP    NOT NULL,
+                    user_id   VARCHAR(50),
+                    FOREIGN KEY (user_id) REFERENCES users(id)
+                )
+            """);
+
+            System.out.println("DB初期化完了");
+
+        } catch (Exception e) {
+        	e.printStackTrace();
+            throw new RuntimeException("DB初期化失敗", e);
+        }
+    }
+}
+</file>
+
+<file path="src/main/java/tweet/model/Tweet.java">
+package tweet.model; // ← ここだけ変更
+
+import java.time.LocalDateTime;
+
+public class Tweet {
+    private String text;
+    private double latitude;
+    private double longitude;
+    private LocalDateTime postedAt;
+		private String userId; // ★ 追加
+		
+    public Tweet() {}
+
+    public Tweet(String text, double latitude, double longitude, 
+		    LocalDateTime postedAt, String userId) { // ★ userId 追加
+        this.text = text;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.postedAt = postedAt;
+        this.userId  = userId ;
+    }
+
+    public String getText() { return text; }
+    public void setText(String text) { this.text = text; }
+    public double getLatitude() { return latitude; }
+    public void setLatitude(double latitude) { this.latitude = latitude; }
+    public double getLongitude() { return longitude; }
+    public void setLongitude(double longitude) { this.longitude = longitude; }
+    public LocalDateTime getPostedAt() { return postedAt; }
+    public void setPostedAt(LocalDateTime postedAt) { this.postedAt = postedAt; }
+    public String getUserId() { return userId; } // ★ 追加
+    public void setUserId(String userId) { this.userId = userId; } // ★ 追加
+    }
+</file>
+
+<file path="src/main/java/tweet/model/User.java">
+package tweet.model;
+
+import java.io.Serializable;
+
+public class User implements Serializable {
+  private String id;
+  private String pass;
+  private String name;
+  private String profile;
+
+  public User() { }
+  public User(String id, String pass, String name, String profile) {
+    this.id = id;
+    this.pass = pass;
+    this.name = name;
+    this.profile = profile;
+  }
+  public String getId() { return id; }
+  public String getPass() { return pass; }
+  public String getName() { return name; }
+  public String getProfile() { return profile; }
+}
+</file>
+
+<file path="src/main/java/tweet/servlet/PostServlet.java">
+package tweet.servlet; // ← 変更
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+
+import tweet.dao.DbConfig;
+import tweet.dao.JdbcTweetDao;
+import tweet.dao.TweetDao;    // ← 変更
+import tweet.model.Tweet;     // ← 変更
+
+@WebServlet("/post")
+public class PostServlet extends HttpServlet {
+
+    private TweetDao dao;
+
+    @Override
+    public void init() {
+//        String filePath = getServletContext().getRealPath("/WEB-INF/data/tweets.xml");
+//        dao = new XmlTweetDao(filePath);
+        dao = new JdbcTweetDao(DbConfig.URL);
+    }
+
+    // ★ セッションチェック共通メソッド
+    private boolean isLoggedIn(HttpServletRequest req) {
+        HttpSession session = req.getSession(false);
+        return session != null && session.getAttribute("loginUser") != null;
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        // ★ 未ログインならログイン画面へ
+        if (!isLoggedIn(req)) {
+            resp.sendRedirect(req.getContextPath() + "/UserLogin");
+            return;
+        }
+        req.getRequestDispatcher("/post.jsp").forward(req, resp);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        // ★ 未ログインならログイン画面へ
+        if (!isLoggedIn(req)) {
+            resp.sendRedirect(req.getContextPath() + "/UserLogin");
+            return;
+        }
+
+        req.setCharacterEncoding("UTF-8");
+        String text = req.getParameter("text");
+        String latStr = req.getParameter("latitude");
+        String lngStr = req.getParameter("longitude");
+
+        if (text == null || text.trim().isEmpty()) {
+            resp.sendRedirect("post.jsp?error=empty");
+            return;
+        }
+
+        double lat = 0.0, lng = 0.0;
+        if (latStr != null && !latStr.isEmpty()) {
+            lat = Double.parseDouble(latStr);
+            lng = Double.parseDouble(lngStr);
+        }
+
+		    // ★ セッションからログインユーザーのIDを取得
+		    HttpSession session = req.getSession(false);
+		    tweet.model.User loginUser =
+		        (tweet.model.User) session.getAttribute("loginUser");
+		    String userId = loginUser != null ? loginUser.getId() : "";
+
+        dao.save(new Tweet(text.trim(), lat, lng, LocalDateTime.now(), userId));
+        resp.sendRedirect("timeline");
+    }
+}
+</file>
+
+<file path="src/main/java/tweet/servlet/ProfileServlet.java">
+package tweet.servlet;
+
+import java.io.IOException;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+
+import tweet.dao.DbConfig;
+import tweet.dao.JdbcUserDAO;
+import tweet.model.User;
+
+@WebServlet("/profile")
+public class ProfileServlet extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        // 未ログインならログイン画面へ
+        HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("loginUser") == null) {
+            resp.sendRedirect(req.getContextPath() + "/UserLogin");
+            return;
+        }
+
+        String targetId = req.getParameter("id");
+        if (targetId == null || targetId.trim().isEmpty()) {
+            resp.sendRedirect(req.getContextPath() + "/timeline");
+            return;
+        }
+
+//      UserDAO dao = new UserDAO(getServletContext());
+      JdbcUserDAO dao = new JdbcUserDAO(DbConfig.URL);
+
+      User targetUser = dao.findById(targetId); // ← UserDAO に追加するメソッド
+
+        req.setAttribute("targetUser", targetUser);
+        req.getRequestDispatcher("/profile.jsp").forward(req, resp);
+    }
+}
+</file>
+
+<file path="src/main/java/tweet/servlet/RegisterUser.java">
+package tweet.servlet;
+
+import java.io.IOException;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+
+import tweet.dao.DbConfig;
+import tweet.dao.JdbcUserDAO;
+import tweet.model.User;
+
+@WebServlet("/RegisterUser")
+public class RegisterUser extends HttpServlet {
+  private static final long serialVersionUID = 1L;
+
+  protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    // フォワード先
+    String forwardPath = null;
+
+    // サーブレットクラスの動作を決定する「action」の値を
+    // リクエストパラメータから取得
+    String action = request.getParameter("action");
+
+    // 「登録の開始」をリクエストされたときの処理
+    if (action == null) {
+      // フォワード先を設定
+      forwardPath = "WEB-INF/jsp/registerForm.jsp";
+    }
+    // 登録確認画面から「登録実行」をリクエストされたときの処理
+    else if (action.equals("done")) {
+      // セッションスコープに保存された登録ユーザ
+      HttpSession session = request.getSession();
+      User registerUser = (User) session.getAttribute("registerUser");
+
+      // 登録処理の呼び出し
+//    UserDAO dao = new UserDAO(getServletContext());
+    JdbcUserDAO dao = new JdbcUserDAO(DbConfig.URL);
+      
+      //      RegisterUserLogic logic = new RegisterUserLogic();
+//      logic.execute(registerUser, getServletContext());
+      //      logic.execute(registerUser);
+      dao.insert(registerUser);
+      
+      
+      
+      
+      // 不要となったセッションスコープ内のインスタンスを削除
+      session.removeAttribute("registerUser");
+
+      // 登録後のフォワード先を設定
+      forwardPath = "WEB-INF/jsp/registerDone.jsp";
+    }
+
+    // 設定されたフォワード先にフォワード
+    request.getRequestDispatcher(forwardPath).forward(request, response);
+  }
+
+  protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    // リクエストパラメータの取得
+    request.setCharacterEncoding("UTF-8");
+    String id = request.getParameter("id");
+    String name = request.getParameter("name");
+    String pass = request.getParameter("pass");
+    String profile = request.getParameter("profile");    
+
+    // 登録するユーザーの情報を設定
+    User registerUser = new User(id, pass, name, profile);
+    // 登録処理の呼び出し
+//  UserDAO dao = new UserDAO(getServletContext());
+  JdbcUserDAO dao = new JdbcUserDAO(DbConfig.URL);
+    
+    HttpSession session = request.getSession();
+    session.setAttribute("registerUser", registerUser);
+    
+    if (dao.exists(id)) {
+        // セッションスコープに登録ユーザーを保存
+        session.setAttribute("errResponse", 1);
+    	
+        // フォワード
+        request.getRequestDispatcher("WEB-INF/jsp/registerForm.jsp").forward(request, response);      	
+    }else {
+        // セッションスコープに登録ユーザーを保存
+        session.setAttribute("registerUser", registerUser);
+        session.setAttribute("errResponse", 0);
+
+        // フォワード
+        request.getRequestDispatcher("WEB-INF/jsp/registerConfirm.jsp").forward(request, response);
+    }
+  }
+}
+</file>
+
+<file path="src/main/java/tweet/servlet/TimelineServlet.java">
+package tweet.servlet;
+
+import java.io.IOException;
+import java.util.List;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+
+import tweet.dao.DbConfig;
+import tweet.dao.JdbcTweetDao;
+import tweet.dao.TweetDao;
+import tweet.model.Tweet;
+
+@WebServlet("/timeline")
+public class TimelineServlet extends HttpServlet {
+
+    private TweetDao dao;
+
+    @Override
+    public void init() {
+//        String filePath = getServletContext().getRealPath("/WEB-INF/data/tweets.xml");
+//      dao = new XmlTweetDao(filePath);
+      dao = new JdbcTweetDao(DbConfig.URL);
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse responce)
+            throws ServletException, IOException {
+
+    	// ★ 未ログインならログイン画面へ
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("loginUser") == null) {
+        	responce.sendRedirect(request.getContextPath() + "/UserLogin");
+            return;
+        }
+        
+        List<Tweet> tweets = dao.findAll();
+
+        request.setAttribute("tweets", tweets);
+        request.getRequestDispatcher("timeline.jsp").forward(request, responce);
+    }
+}
+</file>
+
+<file path="src/main/java/tweet/servlet/UserLogin.java">
+package tweet.servlet;
+
+import java.io.IOException;
+
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+
+import tweet.dao.DbConfig;
+import tweet.dao.JdbcUserDAO;
+import tweet.model.User;
+
+@WebServlet("/UserLogin")
+public class UserLogin extends HttpServlet {
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String action = request.getParameter("action");
+        String forwardPath;
+
+        if (action == null) {
+            forwardPath = "WEB-INF/jsp/loginForm.jsp";
+        } else if (action.equals("done")) {
+            // ★ ログアウト処理：loginUser を削除
+            //HttpSession session = request.getSession();
+            //session.removeAttribute("loginUser");
+            //session.removeAttribute("errResponse");
+            // ★ 変更後：セッション全体を破棄してから新規セッションで遷移
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                session.invalidate(); // セッションを完全に破棄
+            }
+           
+            
+            forwardPath = "WEB-INF/jsp/loginForm.jsp";
+        } else {
+            forwardPath = "WEB-INF/jsp/loginForm.jsp";
+        }
+
+        RequestDispatcher dispatcher = request.getRequestDispatcher(forwardPath);
+        dispatcher.forward(request, response);
+    }
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        request.setCharacterEncoding("UTF-8");
+        String id = request.getParameter("id");
+        String pass = request.getParameter("pass");
+
+//        UserDAO dao = new UserDAO(getServletContext());
+        JdbcUserDAO dao = new JdbcUserDAO(DbConfig.URL);
+
+        User loginUser = dao.login(id, pass);
+        HttpSession session = request.getSession();
+
+        if (loginUser != null) {
+            // ★ ログイン成功 → main.jsp の代わりにつぶやきアプリの /post へ
+            session.setAttribute("loginUser", loginUser);
+            response.sendRedirect(request.getContextPath() + "/post");
+        } else {
+            // ログイン失敗 → ログインフォームに戻る
+            session.setAttribute("errResponse", 1);
+            request.getRequestDispatcher("WEB-INF/jsp/loginForm.jsp")
+                   .forward(request, response);
+        }
+    }
+}
+</file>
+
+<file path="src/main/webapp/META-INF/MANIFEST.MF">
+Manifest-Version: 1.0
+Class-Path:
+</file>
+
+<file path="src/main/webapp/post.jsp">
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>つぶやく</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
+    #map { height: 300px; margin: 0.5rem 0 1rem; border: 1px solid #ccc; border-radius: 8px; }
+    textarea { width: 100%; box-sizing: border-box; padding: 8px; font-size: 15px; }
+    button { margin-top: 0.75rem; padding: 8px 24px; font-size: 15px; cursor: pointer; }
+    #location-label { font-size: 13px; color: #666; margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+
+<h2>つぶやく</h2>
+
+<form action="post" method="post">
+  <textarea name="text" rows="3" placeholder="いまどこで何してる？" required></textarea>
+
+  <p>場所を選ぶ（地図をクリック）</p>
+  <div id="map"></div>
+  <p id="location-label">📍 場所未選択</p>
+
+  <!-- 地図クリックで緯度経度をここにセット -->
+  <input type="hidden" name="latitude"  id="latitude"  value="">
+  <input type="hidden" name="longitude" id="longitude" value="">
+
+  <button type="submit">つぶやく</button>
+  <a href="timeline" style="margin-left:1rem;">タイムラインへ</a>
+</form>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const map = L.map('map').setView([35.6812, 139.7671], 11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  let marker = null;
+
+  map.on('click', function(e) {
+    const lat = e.latlng.lat.toFixed(6);
+    const lng = e.latlng.lng.toFixed(6);
+
+    document.getElementById('latitude').value  = lat;
+    document.getElementById('longitude').value = lng;
+    document.getElementById('location-label').textContent
+        = '📍 ' + lat + ', ' + lng;
+
+    if (marker) map.removeLayer(marker);
+    marker = L.marker(e.latlng).addTo(map);
+  });
+</script>
+
+</body>
+</html>
+</file>
+
+<file path="src/main/webapp/profile.jsp">
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="tweet.model.User" %>
+<%
+    User targetUser = (User) request.getAttribute("targetUser");
+
+%>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>プロフィール</title>
+  <style>
+    body { font-family: sans-serif; max-width: 500px; margin: 2rem auto; padding: 0 1rem; }
+    .profile-card {
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 2rem;
+      background: #fafafa;
+    }
+    .profile-name { font-size: 22px; font-weight: bold; margin-bottom: 0.3rem; }
+    .profile-id   { font-size: 13px; color: #888; margin-bottom: 1rem; }
+    .profile-bio  { font-size: 15px; line-height: 1.6; white-space: pre-wrap; }
+    .back-link    { display: inline-block; margin-top: 1.5rem; color: #555; }
+  </style>
+</head>
+<body>
+
+<h2>プロフィール</h2>
+
+<% if (targetUser == null) { %>
+  <p>ユーザーが見つかりませんでした。</p>
+<% } else { %>
+  <div class="profile-card">
+    <p class="profile-name">${fn:escapeXml(targetUser.name)}</p>
+    <p class="profile-id">@${fn:escapeXml(targetUser.id)}</p>
+    <p class="profile-bio">${fn:escapeXml(targetUser.profile)}</p>
+  </div>
+<% } %>
+
+<a class="back-link" href="timeline">← タイムラインへ戻る</a>
+
+</body>
+</html>
+</file>
+
+<file path="src/main/webapp/timeline.jsp">
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="tweet.model.Tweet, java.util.List" %>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>タイムライン</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
+    .tweet-card {
+      border: 1px solid #ddd; border-radius: 8px;
+      padding: 1rem; margin-bottom: 1rem;
+    }
+    .tweet-text { font-size: 16px; margin: 0 0 6px; }
+    .tweet-meta { font-size: 12px; color: #888; margin-bottom: 8px; }
+    .mini-map   { height: 150px; border-radius: 6px; border: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+
+<h2>タイムライン</h2>
+<%-- a href="post.jsp">+ つぶやく</a>--%>
+<%-- ログインユーザー情報をセッションから取得 --%>
+<%
+    tweet.model.User loginUser =
+        (tweet.model.User) session.getAttribute("loginUser");
+%>
+<%-- ヘッダー部分を変更 --%>
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+  <div>
+    <a href="post">＋ つぶやく</a>
+  </div>
+  <div>
+    <%-- ログインユーザー名の表示＋ログアウトリンク --%>
+    <span style="font-size:13px; color:#666; margin-right:1rem;">
+      👤 <%= loginUser != null ? loginUser.getName() : "" %>
+    </span>
+    <a href="UserLogin?action=done"
+       style="font-size:13px; color:#e55; text-decoration:none;"
+       onclick="return confirm('ログアウトしますか？')">
+      ログアウト
+    </a>
+  </div>
+</div>
+
+<div style="margin-top:1rem;">
+<%
+  List<Tweet> tweets = (List<Tweet>) request.getAttribute("tweets");
+  if (tweets == null || tweets.isEmpty()) {
+%>
+  <p>まだつぶやきはありません。</p>
+<%
+  } else {
+    for (int i = 0; i < tweets.size(); i++) {
+      Tweet t = tweets.get(i);
+      pageContext.setAttribute("t", t); // EL式でtを呼ぶため
+
+%>
+  <div class="tweet-card">
+    <%--p class="tweet-text"><%= t.getText() %></p--%>
+    <p class="tweet-text">${fn:escapeXml(t.text)}</p>
+    <p class="tweet-meta">
+	  <!-- ★ 投稿者名をリンクに変更 -->
+	  <% if (t.getUserId() != null && !t.getUserId().isEmpty()) { %>
+        <a href="profile?id=<%= t.getUserId() %>" style="color:#1a8cff; text-decoration:none;">
+      👤  ${fn:escapeXml(t.userId)}
+       </a>
+       ／
+      <% } %>    
+      <%= t.getPostedAt() %>
+      <% if (t.getLatitude() != 0.0 || t.getLongitude() != 0.0) { %>
+        ／ 📍 <%= String.format("%.4f", t.getLatitude()) %>,
+           <%= String.format("%.4f", t.getLongitude()) %>
+      <% } %>
+    </p>
+    <% if (t.getLatitude() != 0.0 || t.getLongitude() != 0.0) { %>
+      <div id="map-<%= i %>" class="mini-map"></div>
+    <% } %>
+  </div>
+<%
+    }
+  }
+%>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+<%
+  if (tweets != null) {
+    for (int i = 0; i < tweets.size(); i++) {
+      Tweet t = tweets.get(i);
+      if (t.getLatitude() != 0.0 || t.getLongitude() != 0.0) {
+%>
+  (function() {
+    const m = L.map('map-<%= i %>', {
+      zoomControl: false, dragging: false,
+      scrollWheelZoom: false, doubleClickZoom: false
+    }).setView([<%= t.getLatitude() %>, <%= t.getLongitude() %>], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(m);
+    L.marker([<%= t.getLatitude() %>, <%= t.getLongitude() %>]).addTo(m);
+  })();
+<%
+      }
+    }
+  }
+%>
+</script>
+
+</body>
+</html>
+</file>
+
+<file path="src/main/webapp/WEB-INF/jsp/loginForm.jsp">
+<%@ page language="java" contentType="text/html; charset=UTF-8" 
+    pageEncoding="UTF-8" %>
+<%@ page import="tweet.model.User" %>
+
+<%
+    // sessionから取得（この時点では Object 型）
+    Object errObj = session.getAttribute("errResponse");
+    
+    // nullチェックをしてから int に変換する
+    int errType = 0; 
+    if (errObj != null) {
+        errType = (int) errObj;
+    }
+%>
+    
+    
+    
+    
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ユーザーログイン</title>
+<style>
+  /* 各入力行のスタイル */
+  .form-item {
+    display: flex;          /* 横並びにする */
+    align-items: center;    /* 縦方向の中央揃え */
+    margin-bottom: 10px;    /* 行間の余白 */
+  }
+
+  /* ラベルのスタイル */
+  .form-item label {
+    width: 100px;           /* ラベルの幅を固定して左端を揃える */
+    flex-shrink: 0;         /* 幅を縮ませない */
+  }
+
+  /* 自己紹介など、複数行入力のスタイル調整 */
+  .form-item.align-top {
+    align-items: flex-start; /* ラベルを上側に配置 */
+  }
+
+  /* 自己紹介欄のサイズ指定 */
+  .large-field {
+    width: 300px;           /* 横幅 */
+    height: 100px;          /* 高さ */
+    resize: vertical;       /* ユーザーが縦方向にのみサイズ変更可能にする */
+  }
+</style>
+
+</head>
+<body>
+<H1> ユーザーログイン　</H1>
+<form action="UserLogin" method="post">
+  <div class="form-item">
+    <label for="id">ログインID：</label>
+    <input type="text" id="id" name="id">
+  </div>
+
+  <div class="form-item">
+    <label for="pass">パスワード：</label>
+    <input type="password" id="pass" name="pass">
+  </div>
+
+  <div class="form-item">
+    <label></label> <input type="submit" value="ログイン">
+  </div>
+</form>
+
+<a href="RegisterUser">ユーザー登録</a>
+<hr>
+    <%
+
+        switch(errType){
+		    case 1: %>
+	            <p>IDまたはパスワードが違います</p>
+				<% break;
+		    case 2: %>
+            <p></p>
+				<% break;
+		    case 3: %>
+            <p></p>
+				<% break;
+		    default:			
+        }
+    %>
+
+</body>
+</html>
+</file>
+
+<file path="src/main/webapp/WEB-INF/jsp/registerConfirm.jsp">
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" 
+    pageEncoding="UTF-8" %>
+<%@ page import="tweet.model.User" %>
+<%
+// User registerUser = (User) session.getAttribute("registerUser");
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ユーザー登録</title>
+</head>
+<body>
+<p>下記のユーザーを登録します</p>
+<p>
+ログインID：${fn:escapeXml(registerUser.id)}<br>
+名前：${fn:escapeXml(registerUser.name)}<br>
+自己紹介：${fn:escapeXml(registerUser.profile)}<br>
+</p></p>
+<a href="RegisterUser">戻る</a>
+<a href="RegisterUser?action=done">登録</a>
+</body>
+</html>
+</file>
+
+<file path="src/main/webapp/WEB-INF/jsp/registerDone.jsp">
+<%@ page language="java" contentType="text/html; charset=UTF-8" 
+    pageEncoding="UTF-8" %>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ユーザー登録</title>
+</head>
+<body>
+<p>登録完了しました</p>
+<a href="UserLogin">ログイン画面へ</a>
+</body>
+</html>
+</file>
+
+<file path="src/main/webapp/WEB-INF/jsp/registerForm.jsp">
+<%@ page language="java" contentType="text/html; charset=UTF-8" 
+    pageEncoding="UTF-8" %>
+<%@ page import="tweet.model.User" %>
+
+<% User registerUser = (User) session.getAttribute("registerUser"); %>
+<%
+    // sessionから取得（この時点では Object 型）
+    Object errObj = session.getAttribute("errResponse");
+    
+    // nullチェックをしてから int に変換する
+    int errType = 0; 
+    if (errObj != null) {
+        errType = (int) errObj;
+    }
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ユーザー登録</title>
+<style>
+  /* 各入力行のスタイル */
+  .form-item {
+    display: flex;          /* 横並びにする */
+    align-items: center;    /* 縦方向の中央揃え */
+    margin-bottom: 10px;    /* 行間の余白 */
+  }
+
+  /* ラベルのスタイル */
+  .form-item label {
+    width: 100px;           /* ラベルの幅を固定して左端を揃える */
+    flex-shrink: 0;         /* 幅を縮ませない */
+  }
+
+  /* 自己紹介など、複数行入力のスタイル調整 */
+  .form-item.align-top {
+    align-items: flex-start; /* ラベルを上側に配置 */
+  }
+
+  /* 自己紹介欄のサイズ指定 */
+  .large-field {
+    width: 300px;           /* 横幅 */
+    height: 100px;          /* 高さ */
+    resize: vertical;       /* ユーザーが縦方向にのみサイズ変更可能にする */
+  }
+</style>
+
+</head>
+<body>
+<H1> ユーザー登録　</H1>
+<form action="RegisterUser" method="post">
+  <div class="form-item">
+    <label for="id">ログインID：</label>
+    <input type="text" id="id" name="id">
+  </div>
+
+  <div class="form-item">
+    <label for="pass">パスワード：</label>
+    <input type="password" id="pass" name="pass">
+  </div>
+
+  <div class="form-item">
+    <label for="name">名前：</label>
+    <input type="text" id="name" name="name">
+  </div>
+
+  <div class="form-item align-top">
+    <label for="intro">自己紹介：</label>
+    <textarea id="intro" name="profile" class="large-field"></textarea>
+  </div>
+
+  <div class="form-item">
+    <label></label> <input type="submit" value="確認">
+  </div>
+</form>
+<a href="UserLogin">ログイン画面へ</a>
+
+<hr>
+
+    <% if (registerUser != null) {
+        switch(errType){
+		    case 1: %>
+	            <p>登録済みのIDです</p>
+      			<% session.removeAttribute("registerUser");
+      			session.removeAttribute("errType");
+				break;
+		    case 2: %>
+            <p></p>
+				<% break;
+		    case 3: %>
+            <p></p>
+				<% break;
+		    default:			
+        }
+    } %>
+
+</body>
+</html>
+</file>
+
+</files>

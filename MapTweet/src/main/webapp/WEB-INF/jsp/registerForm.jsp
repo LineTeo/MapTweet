@@ -13,6 +13,24 @@
         errType = (int) errObj;
     }
 %>
+
+<% 	String id = "";
+	String name = "";
+	String profile = "";
+if (registerUser != null) {
+    switch(errType){
+	    case 1:
+	    case 2:
+		case 3: 
+	        // スコープから以前入力した文字の取得
+	        id = registerUser.getId();
+	        name = registerUser.getName();
+	        profile = registerUser.getProfile();
+			break;
+		 default:			
+        }
+    } %>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -51,7 +69,7 @@
 <form action="RegisterUser" method="post">
   <div class="form-item">
     <label for="id">ログインID：</label>
-    <input type="text" id="id" name="id">
+    <input type="text" id="id" name="id" value="<%= id %>">
   </div>
 
   <div class="form-item">
@@ -61,12 +79,12 @@
 
   <div class="form-item">
     <label for="name">名前：</label>
-    <input type="text" id="name" name="name">
+    <input type="text" id="name" name="name" value="<%= name %>">
   </div>
 
   <div class="form-item align-top">
     <label for="intro">自己紹介：</label>
-    <textarea id="intro" name="profile" class="large-field"></textarea>
+    <textarea id="intro" name="profile" class="large-field"><%= profile %></textarea>
   </div>
 
   <div class="form-item">
@@ -84,12 +102,15 @@
       			<% session.removeAttribute("registerUser");
       			session.removeAttribute("errType");
 				break;
-		    case 2: %>
-            <p></p>
-				<% break;
+		    case 2: 
+      			session.removeAttribute("registerUser");
+      			session.removeAttribute("errType");
+				break;
 		    case 3: %>
-            <p></p>
-				<% break;
+	            <p>IDまたはパスワードが入力されていません</p>
+      			<% session.removeAttribute("registerUser");
+      			session.removeAttribute("errType");
+				break;
 		    default:			
         }
     } %>

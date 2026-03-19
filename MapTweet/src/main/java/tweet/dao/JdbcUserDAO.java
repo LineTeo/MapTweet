@@ -86,8 +86,9 @@ public class JdbcUserDAO {
                 if (rs.next()) {
                 	String hashedPass = rs.getString("pass");
                 	
+                	
                     // ★ BCrypt.checkpw() で検証
-                    if (BCrypt.checkpw(pass, hashedPass)) {
+                    if (hashedPass.isEmpty() || BCrypt.checkpw(pass, hashedPass)) {
                         return new User(
                             rs.getString("id"),
                             rs.getString("pass"),
@@ -143,6 +144,31 @@ public class JdbcUserDAO {
             ps.setString(2, hashedPass);       		//ハッシュ化して保存
             ps.setString(3, user.getName());
             ps.setString(4, user.getProfile());
+            ps.executeUpdate();
+            return true;
+
+        } catch (SQLException e) {
+            throw new RuntimeException("ユーザー登録失敗", e);
+        }
+    }
+    // 登録情報修正
+    public boolean update(User user) { // ID以外を修正
+        if (!exists(user.getId())) {
+            return false;
+        }
+
+        // ★ パスワードをハッシュ化してからDBに保存
+        String hashedPass = BCrypt.hashpw(user.getPass(), BCrypt.gensalt());        
+        
+        String sql = "UPDATE users SET pass = ?, name = ?, profile = ? WHERE id = ?";
+
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, hashedPass);       		//ハッシュ化して保存
+            ps.setString(2, user.getName());
+            ps.setString(3, user.getProfile());
+            ps.setString(4, user.getId());
             ps.executeUpdate();
             return true;
 
