@@ -22,6 +22,7 @@
 %>
 <h2>${fn:escapeXml(loginUser.id)} さんのつぶやき</h2>
 <form action="post" method="post">
+  <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
   <textarea name="text" rows="3" placeholder="いまどこで何してる？" required></textarea>
 
   <p>場所を選ぶ（地図をクリック）</p>

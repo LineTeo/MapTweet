@@ -18,7 +18,12 @@
 名前：${fn:escapeXml(registerUser.name)}<br>
 自己紹介：${fn:escapeXml(registerUser.profile)}<br>
 </p></p>
+<form action="EditProfile" method="post"> 
+<input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
+<input type="hidden" name="action" value="update">
+<button type="submit">登録</button>
+
+</form>
 <a href="RegisterUser">戻る</a>
-<a href="RegisterUser?action=done">登録</a>
 </body>
 </html>

@@ -88,8 +88,10 @@ if (registerUser != null) {
   </div>
 
   <div class="form-item">
-    <label></label> <input type="submit" value="確認">
+    <button type="submit" name="action" value="confirm">確認する</button>
   </div>
+  <input type="hidden" name="action" value="confirm">
+　<input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}"> 
 </form>
 <a href="UserLogin">ログイン画面へ</a>
 
