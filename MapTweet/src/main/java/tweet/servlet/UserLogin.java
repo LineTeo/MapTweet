@@ -21,29 +21,22 @@ public class UserLogin extends HttpServlet {
             throws ServletException, IOException {
 
         String action = request.getParameter("action");
-        String forwardPath;
-
-        if (action == null) {
-            forwardPath = "WEB-INF/jsp/loginForm.jsp";
-        } else if (action.equals("done")) {
-            // ★ ログアウト処理：loginUser を削除
-            //HttpSession session = request.getSession();
-            //session.removeAttribute("loginUser");
-            //session.removeAttribute("errResponse");
-            // ★ 変更後：セッション全体を破棄してから新規セッションで遷移
+//        String forwardPath;
+        // ログアウト処理：action=done の場合
+        if ("done".equals(action)) {
             HttpSession session = request.getSession(false);
             if (session != null) {
-                session.invalidate(); // セッションを完全に破棄
+                session.invalidate(); // セッションを完全に破棄して無効化
             }
-           
-            
-            forwardPath = "WEB-INF/jsp/loginForm.jsp";
-        } else {
-            forwardPath = "WEB-INF/jsp/loginForm.jsp";
+            // ログアウト後は再ログインを促すためリダイレクト（二重送信防止）
+            response.sendRedirect(request.getContextPath() + "/UserLogin");
+            return;
         }
 
-        RequestDispatcher dispatcher = request.getRequestDispatcher(forwardPath);
+        // 通常の表示（actionがnullまたはそれ以外）
+        RequestDispatcher dispatcher =request.getRequestDispatcher("WEB-INF/jsp/loginForm.jsp");
         dispatcher.forward(request, response);
+  
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -57,17 +50,27 @@ public class UserLogin extends HttpServlet {
         JdbcUserDAO dao = new JdbcUserDAO(DbConfig.URL);
 
         User loginUser = dao.login(id, pass);
-        HttpSession session = request.getSession();
 
         if (loginUser != null) {
             // ★ ログイン成功 → main.jsp の代わりにつぶやきアプリの /post へ
+            // ★【セッション固定攻撃対策】★
+            // ログイン成功直後にセッションIDを新しく作り直す
+            request.changeSessionId();
+
+            HttpSession session = request.getSession();
             session.setAttribute("loginUser", loginUser);
+            // 認証成功後はリダイレクト
             response.sendRedirect(request.getContextPath() + "/post");
         } else {
+            // ログイン失敗：エラーフラグを立ててログイン画面へ戻る
+            HttpSession session = request.getSession();
             // ログイン失敗 → ログインフォームに戻る
             session.setAttribute("errResponse", 1);
-            request.getRequestDispatcher("WEB-INF/jsp/loginForm.jsp")
-                   .forward(request, response);
+            request.getRequestDispatcher("WEB-INF/jsp/loginForm.jsp").forward(request, response);
         }
     }
 }
+        
+
+
+            

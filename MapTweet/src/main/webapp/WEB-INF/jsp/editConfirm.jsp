@@ -19,7 +19,13 @@
 自己紹介：${fn:escapeXml(modUser.profile)}<br>
 ※パスワードは表示されません。
 </p></p>
+<form action="EditProfile" method="post"> 
+<input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
+<input type="hidden" name="action" value="update">
+<button type="submit">更新を実行する</button>
+
+</form>
 <a href="EditProfile">戻る</a>
-<a href="EditProfile?action=done">変更</a>
+<!-- a href="EditProfile?action=done">変更</a-->
 </body>
 </html>

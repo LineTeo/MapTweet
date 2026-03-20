@@ -20,7 +20,7 @@
 if (modUser != null) {
 	switch(errType){
 		case 0:
-			break;
+			//break;
 		default:			
 			// スコープから以前入力した文字の取得
 			name = modUser.getName();
@@ -90,10 +90,12 @@ if (modUser != null) {
     <label for="intro">自己紹介：</label>
     <textarea id="intro" name="newProfile" class="large-field"><%= profile %></textarea>
   </div>
-
   <div class="form-item">
-    <label></label> <input type="submit" value="変更">
+    <button type="submit" name="action" value="confirm">確認する</button>
+    <!--label></label> <input type="submit" value="変更"-->
   </div>
+	<input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
+    <input type="hidden" name="action" value="confirm">
 </form>
  <a href="profile?id=<%= loginUser.getId() %>" style="color:#1a8cff; text-decoration:none;">戻る</a>
 <hr>

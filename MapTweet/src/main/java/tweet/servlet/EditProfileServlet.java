@@ -1,6 +1,7 @@
 package tweet.servlet;
 
 import java.io.IOException;
+import java.util.UUID; // トークン生成に使用
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -13,58 +14,66 @@ import tweet.dao.DbConfig;
 import tweet.dao.JdbcUserDAO;
 import tweet.model.User;
 
+
+
 @WebServlet("/EditProfile")
 public class EditProfileServlet extends HttpServlet {
   private static final long serialVersionUID = 1L;
 
   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    // フォワード先
-    String forwardPath = null;
 
-    // サーブレットクラスの動作を決定する「action」の値を
-    // リクエストパラメータから取得
-    String action = request.getParameter("action");
-
-    // 「登録の開始」をリクエストされたときの処理
-    if (action == null) {
-      // フォワード先を設定
-      forwardPath = "WEB-INF/jsp/editProfile.jsp";
-    }
-    // 登録確認画面から「登録実行」をリクエストされたときの処理
-    else if (action.equals("done")) {
-      // セッションスコープに保存された登録ユーザ
+	// ログインチェック（未ログインならログイン画面へ）
       HttpSession session = request.getSession();
-      User modUser = (User) session.getAttribute("modUser");
+      if (session.getAttribute("loginUser") == null) {
+          response.sendRedirect(request.getContextPath() + "/UserLogin");
+          return;
+      }
 
-      // 登録処理の呼び出し
-//    UserDAO dao = new UserDAO(getServletContext());
-    JdbcUserDAO dao = new JdbcUserDAO(DbConfig.URL);
-      
-      //      RegisterUserLogic logic = new RegisterUserLogic();
-//      logic.execute(registerUser, getServletContext());
-      //      logic.execute(registerUser);
-      dao.update(modUser);
-            
-      // ログインユーザーの情報を更新し、不要となったセッションスコープ内のインスタンスを削除
-      session.setAttribute("longinUser", modUser);
-      session.removeAttribute("modUser");
+   // --- CSRF対策: トークンの生成と保存 ---
+      String csrfToken = UUID.randomUUID().toString();
+      session.setAttribute("csrfToken", csrfToken);
       
       
-      // 登録後のフォワード先を設定
-      forwardPath = "/profile";
-    }
-
-    // 設定されたフォワード先にフォワード
-    request.getRequestDispatcher(forwardPath).forward(request, response);
+      // 編集画面を表示
+      request.getRequestDispatcher("WEB-INF/jsp/editProfile.jsp").forward(request, response);
   }
 
   protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 	// 登録処理の呼び出し
 	HttpSession session = request.getSession();
     User loginUser = (User)session.getAttribute("loginUser");
-    String id = loginUser.getId();
-    
-    // リクエストパラメータの取得
+ // ボタンのname属性などで処理を分岐させる
+    String action = request.getParameter("action");
+
+    if ("confirm".equals(action)) {
+        // --- 1. 確認画面への遷移処理 ---
+        handleConfirm(request, response, session, loginUser);
+        
+    } else if ("update".equals(action)) {
+        // --- 2. 実際のDB更新処理 ---
+    	// --- CSRF対策: トークンの検証 ---
+        String requestToken = request.getParameter("csrfToken");
+        String sessionToken = (String) session.getAttribute("csrfToken");
+
+        if (requestToken == null || !requestToken.equals(sessionToken)) {
+            // トークンが不正な場合は403エラーを返す
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "不正なリクエストです。");
+            return;
+        }
+        
+        // 検証成功なら更新処理へ
+        handleUpdate(request, response, session);
+    }    
+  }
+    /**
+     * 入力内容をチェックし、確認画面へフォワードする
+     */
+  private void handleConfirm(HttpServletRequest request, HttpServletResponse response, 
+                              HttpSession session, User loginUser) throws ServletException, IOException {   
+
+	String id = loginUser.getId();
+
+	  // リクエストパラメータの取得
     request.setCharacterEncoding("UTF-8");
     String crrPass = request.getParameter("crrPass");
     String newPass = request.getParameter("newPass");
@@ -72,12 +81,12 @@ public class EditProfileServlet extends HttpServlet {
     String newName = request.getParameter("newName");      
     String newProfile = request.getParameter("newProfile");    
     //未入力なら変更しない（同じ内容で再登録）
-    if (newPass == "" && repPass == "") {
+    if (newPass.isEmpty() && repPass.isEmpty()) {
     	newPass = crrPass;
     	repPass = crrPass;
     }
-    if (newName == "") {newName = loginUser.getName();}
-    if (newProfile == "") {newProfile = loginUser.getProfile();}    
+    if (newName.isEmpty()) {newName = loginUser.getName();}
+    if (newProfile.isEmpty()) {newProfile = loginUser.getProfile();}    
 
     // 登録するユーザーの情報を設定
     User modUser = new User(id, newPass, newName, newProfile);
@@ -86,17 +95,9 @@ public class EditProfileServlet extends HttpServlet {
     JdbcUserDAO dao = new JdbcUserDAO(DbConfig.URL);
 
     int checkCode = 0;
-    if(dao.login(id, crrPass) == null) {
-        // 現パスワードが間違っている場合
-    	checkCode +=1;
-    }
-    if(!newPass.isEmpty() && !newPass.equals(repPass)) {
-    	checkCode +=2;
-    }
-    
-    if(newPass.isEmpty() && crrPass.isEmpty()) {
-    	checkCode +=4;
-    }
+    if(dao.login(id, crrPass) == null) {checkCode +=1;}  					// 現パスワードが間違っている場合
+    if(!newPass.isEmpty() && !newPass.equals(repPass)) {checkCode +=2;}		// 確認パスワードが間違っている場合
+    if(newPass.isEmpty() && crrPass.isEmpty()) {checkCode +=4;}				// 現パスワードが""で、新パスワードも""の場合
 	
     session.setAttribute("modUser", modUser);
 
@@ -111,5 +112,28 @@ public class EditProfileServlet extends HttpServlet {
     	request.getRequestDispatcher("WEB-INF/jsp/editConfirm.jsp").forward(request, response);
     
     }
+  }
+  /**
+   * DBを更新し、プロフィール画面へリダイレクトする
+   */
+  private void handleUpdate(HttpServletRequest request, HttpServletResponse response, 
+                           HttpSession session) throws IOException {
+      
+      // ここでCSRFトークンのチェックを入れると完璧です
+      
+      User modUser = (User) session.getAttribute("modUser");
+      if (modUser != null) {
+          JdbcUserDAO dao = new JdbcUserDAO(DbConfig.URL);
+          dao.update(modUser);
+          
+          // セッション情報を最新に更新
+          session.setAttribute("loginUser", modUser);
+          session.removeAttribute("modUser");
+       // 使用済みトークンを破棄
+          session.removeAttribute("csrfToken");
+      }
+      
+      // 更新後は「リダイレクト」で二重投稿を防止
+      response.sendRedirect(request.getContextPath() + "/profile");
   }
 }
