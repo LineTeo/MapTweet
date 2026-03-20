@@ -172,29 +172,30 @@ graph TD
     RegConfirm -->|登録<br/>GET:/RegisterUser?action=done|register3(tweet.servlet.RegisterUser.java<br/>登録実行)
     register3 -.->|forword|RegComplete[登録完了ページ<br/>/registerDone.jsp]
     RegComplete -->|完了<br/>GET:/UserLogin| login1
-
-    %% メイン機能
     Login -->|ログイン<br/>POST:/UserLogin|login2(tweet.servlet.UserLogin.java<br/>ユーザー認証)
     login2-.->|redirect GET:/post|post1(tweet.servlet.PostServlet.java<br/>ログインチェック)
+
+    %% メイン機能
     post1-.->|forword|Main[投稿ページ<br/>/post.jsp]
     Main -->|つぶやく<br/>POST:/post|post2(tweet.servlet.PostServlet.java<br/>投稿)
-    post2-->|redirect GET:/timeline|timeline
+    post2-.->|redirect GET:/timeline|timeline
     Main -->|タイムラインへ<br/>GET:/timeline|timeline(tweet.servlet.timeline.java<br/>ツイートデータ取得)
     timeline-.->|forword|Timeline[タイムライン<br/>/Timeline.jsp]
-    login3-.->|forword|Login
+
     %% プロフィール関連
     Timeline -->|GET: /profile?id=xxx<br/>投稿者IDクリック| profile(tweet.servlet.ProfileServlet.java<br/>登録情報取得)
-    profile-->|forward|Profile[プロフィール表示<br/>/Profile.jsp]
-    Profile -->|戻る<br/>GET:/timeline| timeline
+    profile-.->|forward|Profile[プロフィール表示<br/>/Profile.jsp]
+    Profile-->|戻る<br/>GET:/timeline| timeline
     Profile-->|自ID時プロフィール編集<br/>GET:/EditProfile|editprofile1(tweet.servlet.EditProfileServlet.java<br/>登録画面表示)
     editprofile1-.->|forward| ProfEdit[登録情報編集ページ<br/>/editProfile.jsp]
-    ProfEdit -->|POST:/EditProfile<br/>変更ボタン|editprofile2(tweet.servlet.EditProfileServlet.java<br/>変更内容確認)
-    editprofile2-->|forward| EditConfirm[確認ページ<br/>/editComfirm.jsp]
-    EditConfirm -->|POST: /update-profile<br/>変更|editprofile3(tweet.servlet.EditProfileServlet.java<br/>変更処理)
-    editprofile3-->|forward GET:/profile| profile
+    ProfEdit -->|POST:/EditProfile?action=confirm<br/>確認ボタン|editprofile2(tweet.servlet.EditProfileServlet.java<br/>変更内容確認)
+    editprofile2-.->|forward| EditConfirm[確認ページ<br/>/editComfirm.jsp]
+    EditConfirm -->|POST:/EditProfile?action=update<br/>変更ボタン|editprofile3(tweet.servlet.EditProfileServlet.java<br/>変更処理実行)
+    editprofile3-.->|redirect GET:/profile| profile
 
     %% ログアウト
     Timeline -->|ログアウト<br/>GET:UserLogin?action=done| login3[tweet.servlet.UserLogin.java<br/>ログアウト処理]
+    login3 -.->|redirect|Login[ログインページ<br/>/loginForm.jsp]
 
     %% デザイン調整
     style Start fill:#f9f
