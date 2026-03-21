@@ -94,8 +94,7 @@ public class PostServlet extends HttpServlet {
 
         dao.save(new Tweet(text.trim(), lat, lng, LocalDateTime.now(), userId));
         
-        // 投稿成功後はトークンを破棄（使い捨てにする場合）
-        session.removeAttribute("csrfToken");
+        // 投稿成功後はトークンを破棄（使い捨てにする）
         
         resp.sendRedirect("timeline");
     }

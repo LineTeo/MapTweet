@@ -2,6 +2,7 @@ package tweet.servlet;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -37,6 +38,10 @@ public class TimelineServlet extends HttpServlet {
         	responce.sendRedirect(request.getContextPath() + "/UserLogin");
             return;
         }
+        
+        String csrfToken = UUID.randomUUID().toString();
+        request.getSession().setAttribute("csrfToken", csrfToken);
+        request.setAttribute("csrfToken", csrfToken);
         
         List<Tweet> tweets = dao.findAll();
 

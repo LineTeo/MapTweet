@@ -7,8 +7,9 @@ public class Tweet {
     private double latitude;
     private double longitude;
     private LocalDateTime postedAt;
-		private String userId; // ★ 追加
-		
+	private String userId; // ★ 追加
+	private int tweetId;
+
     public Tweet() {}
 
     public Tweet(String text, double latitude, double longitude, 
@@ -30,4 +31,6 @@ public class Tweet {
     public void setPostedAt(LocalDateTime postedAt) { this.postedAt = postedAt; }
     public String getUserId() { return userId; } // ★ 追加
     public void setUserId(String userId) { this.userId = userId; } // ★ 追加
+	public int getTweetId() { return tweetId; }
+	public void setTweetId(int tweetId) { this.tweetId = tweetId; }	
     }

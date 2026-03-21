@@ -59,7 +59,7 @@
   } else {
     for (int i = 0; i < tweets.size(); i++) {
       Tweet t = tweets.get(i);
-      pageContext.setAttribute("t", t); // EL式でtを呼ぶため
+      pageContext.setAttribute("t", t); // EL式でtを呼ぶため、tをページスコープに格納
 
 %>
   <div class="tweet-card">
@@ -82,13 +82,27 @@
     <% if (t.getLatitude() != 0.0 || t.getLongitude() != 0.0) { %>
       <div id="map-<%= i %>" class="mini-map"></div>
     <% } %>
-  </div>
-<%
-    }
+	<%-- 削除ボタン--%>
+		<% if (loginUser != null && 
+		loginUser.getId().equals(t.getUserId())) { %>
+
+		<form action="delete" method="post" style="display:inline;">
+		<input type="hidden" name="tweetId" value="<%= t.getTweetId() %>">
+		<input type="hidden" name="csrfToken" value="${csrfToken}">
+		<button onclick="return confirm('削除しますか？')">削除</button>
+		</form>
+
+	<%-- 編集リンク--%>
+		<a href="editTweet?id=<%= t.getTweetId() %>">編集</a>
+	<% } %>
+		
+  </div>	
+    <%}
   }
 %>
 </div>
 
+<%-- 地図表示--%>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 <%
