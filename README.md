@@ -112,20 +112,7 @@ http://localhost:8080/{プロジェクト名}/UserLogin
 ---
 
 ## 画面遷移
-
-```
-[loginForm.jsp] → POST /UserLogin
-    ↓ 認証成功
-[PostServlet] doGet → post.jsp（投稿フォーム）
-    ↓ POST /post
-[PostServlet] doPost → dao.save()
-    ↓ リダイレクト
-[TimelineServlet] → timeline.jsp
-    ↓ 投稿者名クリック
-[ProfileServlet] → profile.jsp
-```
-
----
+概要
 ```mermaid
 graph TD
     %% 開始とログインを最上部に配置
@@ -143,7 +130,11 @@ graph TD
     %% メイン機能（中央・右側に流す）
     Login -->|認証成功| Main[ツイート投稿画面]
     Main -->|つぶやく| Timeline[ツイート一覧画面]
-    
+    Timeline -->|投稿者つぶやき削除| Delete[削除確認ダイアログ]
+    Delete --> Timeline
+    Timeline -->|投稿者つぶやき編集| EditTweet[ツイート編集画面]
+    EditTweet --> Timeline
+
     %% プロフィール関連
     Timeline -->|投稿者IDクリック| Profile[プロフィール画面]
     
@@ -162,52 +153,58 @@ graph TD
 詳細フロー
 ```mermaid
 graph TD
-    %% 認証・登録フロー
-    Start((開始)) -->|GET: /UserLogin|login1(tweet.servlet.UserLogin.java<br/>ログインページ表示) 
-    login1-.->|forword|Login[ログインページ<br/>/loginForm.jsp]
-    Login -->|ユーザー登録<br/>GET:/RegisterUser|register1(tweet.servlet.RegisterUser.java<br/>登録開始)
-    register1 -.->|forword|Register[ユーザー登録ページ<br/>/registerForm.jsp]
-    Register -->|確認ボタン<br/>POST:/RegisterUser|register2(tweet.servlet.RegisterUser.java<br/>登録確認)
-    register2 -.->|forword|RegConfirm[登録確認ページ<br/>/registerConfirm.jsp]
-    RegConfirm -->|登録<br/>GET:/RegisterUser?action=done|register3(tweet.servlet.RegisterUser.java<br/>登録実行)
-    register3 -.->|forword|RegComplete[登録完了ページ<br/>/registerDone.jsp]
-    RegComplete -->|完了<br/>GET:/UserLogin| login1
-    Login -->|ログイン<br/>POST:/UserLogin|login2(tweet.servlet.UserLogin.java<br/>ユーザー認証)
-    login2-.->|redirect GET:/post|post1(tweet.servlet.PostServlet.java<br/>ログインチェック)
+%% 認証・登録フロー
+Start((開始)) -->|GET: /UserLogin|login1(tweet.servlet.UserLogin.java<br/>ログインページ表示)
+login1-.->|forword|Login[ログインページ<br/>/loginForm.jsp]
+Login -->|ユーザー登録<br/>GET:/RegisterUser|register1(tweet.servlet.RegisterUser.java<br/>登録開始)
+register1 -.->|forword|Register[ユーザー登録ページ<br/>/registerForm.jsp]
+Register -->|確認ボタン<br/>POST:/RegisterUser|register2(tweet.servlet.RegisterUser.java<br/>登録確認)
+register2 -.->|forword|RegConfirm[登録確認ページ<br/>/registerConfirm.jsp]
+RegConfirm -->|登録<br/>GET:/RegisterUser?action=done|register3(tweet.servlet.RegisterUser.java<br/>登録実行)
+register3 -.->|forword|RegComplete[登録完了ページ<br/>/registerDone.jsp]
+RegComplete -->|完了<br/>GET:/UserLogin| login1
+Login -->|ログイン<br/>POST:/UserLogin|login2(tweet.servlet.UserLogin.java<br/>ユーザー認証)
+login2-.->|redirect GET:/post|post1(tweet.servlet.PostServlet.java<br/>ログインチェック)
 
-    %% メイン機能
-    post1-.->|forword|Main[投稿ページ<br/>/post.jsp]
-    Main -->|つぶやく<br/>POST:/post|post2(tweet.servlet.PostServlet.java<br/>投稿)
-    post2-.->|redirect GET:/timeline|timeline
-    Main -->|タイムラインへ<br/>GET:/timeline|timeline(tweet.servlet.timeline.java<br/>ツイートデータ取得)
-    timeline-.->|forword|Timeline[タイムライン<br/>/Timeline.jsp]
+%% メイン機能
+post1-.->|forword|Main[投稿ページ<br/>/post.jsp]
+Main -->|つぶやく<br/>POST:/post|post2(tweet.servlet.PostServlet.java<br/>投稿)
+post2-.->|redirect GET:/timeline|timeline
+Main -->|タイムラインへ<br/>GET:/timeline|timeline(tweet.servlet.timeline.java<br/>ツイートデータ取得)
+timeline-.->|forword|Timeline[タイムライン<br/>/Timeline.jsp]
+Timeline -->|自IDつぶやき削除<br/>POST:/delete| delete(tweet.servlet.DeleteServlet.java<br/>つぶやき削除)
+delete -.->|redirect GET:/timeline|timeline
+Timeline -->|自IDつぶやき編集<br/>GET: /editTweet?id=ログインID| edittweet1(tweet.servlet.EditTweetServlet.java<br/>つぶやき情報取得)
+edittweet1-.->|forword|EditTweet[つぶやき編集<br/>/editTweet.jsp]
+EditTweet-->|自ID編集<br/>POST:/editTweet|edittweet2(tweet.servlet.EditTweetServlet.java<br/>つぶやき編集)
+edittweet2-.->|redirect GET:/timeline|timeline
 
-    %% プロフィール関連
-    Timeline -->|GET: /profile?id=xxx<br/>投稿者IDクリック| profile(tweet.servlet.ProfileServlet.java<br/>登録情報取得)
-    profile-.->|forward|Profile[プロフィール表示<br/>/Profile.jsp]
-    Profile-->|戻る<br/>GET:/timeline| timeline
-    Profile-->|自ID時プロフィール編集<br/>GET:/EditProfile|editprofile1(tweet.servlet.EditProfileServlet.java<br/>登録画面表示)
-    editprofile1-.->|forward| ProfEdit[登録情報編集ページ<br/>/editProfile.jsp]
-    ProfEdit -->|POST:/EditProfile?action=confirm<br/>確認ボタン|editprofile2(tweet.servlet.EditProfileServlet.java<br/>変更内容確認)
-    editprofile2-.->|forward| EditConfirm[確認ページ<br/>/editComfirm.jsp]
-    EditConfirm -->|POST:/EditProfile?action=update<br/>変更ボタン|editprofile3(tweet.servlet.EditProfileServlet.java<br/>変更処理実行)
-    editprofile3-.->|redirect GET:/profile| profile
+%% プロフィール関連
+Timeline -->|GET: /profile?id=xxx<br/>投稿者IDクリック| profile(tweet.servlet.ProfileServlet.java<br/>登録情報取得)
+profile-.->|forward|Profile[プロフィール表示<br/>/Profile.jsp]
+Profile-->|戻る<br/>GET:/timeline| timeline
+Profile-->|自ID時プロフィール編集<br/>GET:/EditProfile|editprofile1(tweet.servlet.EditProfileServlet.java<br/>登録画面表示)
+editprofile1-.->|forward| ProfEdit[登録情報編集ページ<br/>/editProfile.jsp]
+ProfEdit -->|POST:/EditProfile?action=confirm<br/>確認ボタン|editprofile2(tweet.servlet.EditProfileServlet.java<br/>変更内容確認)
+editprofile2-.->|forward| EditConfirm[確認ページ<br/>/editComfirm.jsp]
+EditConfirm -->|POST:/EditProfile?action=update<br/>変更ボタン|editprofile3(tweet.servlet.EditProfileServlet.java<br/>変更処理実行)
+editprofile3-.->|redirect GET:/profile| profile
 
-    %% ログアウト
-    Timeline -->|ログアウト<br/>GET:UserLogin?action=done| login3[tweet.servlet.UserLogin.java<br/>ログアウト処理]
-    login3 -.->|redirect|Login[ログインページ<br/>/loginForm.jsp]
+%% ログアウト
+Timeline -->|ログアウト<br/>GET:UserLogin?action=done| login3[tweet.servlet.UserLogin.java<br/>ログアウト処理]
+login3 -.->|redirect|Login[ログインページ<br/>/loginForm.jsp]
 
-    %% デザイン調整
-    style Start fill:#f9f
-    style Login fill:#e1f5fe
-    style Register fill:#e1f5fe
-    style RegConfirm fill:#e1f5fe
-    style RegComplete fill:#e1f5fe
-    style Main  fill:#e1f5fe
-    style Timeline fill:#e1f5fe
-    style Profile fill:#e1f5fe
-    style ProfEdit  fill:#e1f5fe
-    style EditConfirm fill:#e1f5fe
+%% デザイン調整
+style Start fill:#f9f
+style Login fill:#e1f5fe
+style Register fill:#e1f5fe
+style RegConfirm fill:#e1f5fe
+style RegComplete fill:#e1f5fe
+style Main  fill:#e1f5fe
+style Timeline fill:#e1f5fe
+style Profile fill:#e1f5fe
+style ProfEdit  fill:#e1f5fe
+style EditConfirm fill:#e1f5fe
 ```
 ---
 
@@ -246,6 +243,8 @@ graph TD
 - 2026-03-18:パスワードのハッシュ化（BCrypt）
 - 2026-03-19:ユーザー登録情報の編集機能追加、他
 - 2026-03-20:セキュリティ対策（セッション固定攻撃対策、CSRF対策、PRGパターンの適用）の実装
+- 2026-03-21:投稿した自分のつぶやきの修正、削除機能追加
+
 ---
 
 ## 将来の拡張案
