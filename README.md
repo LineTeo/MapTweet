@@ -43,18 +43,20 @@ src/
     │   └── User.java             ← ユーザーデータBean
     ├── dao/
     │   ├── TweetDao.java         ← つぶやきDAOインタフェース
-    │   ├── (XmlTweetDao.java      ← XML実装)
+    │   ├── (XmlTweetDao.java)     ← (XML実装..現TweetDaoインターフェースに未対応)
     │   ├── DBConfig.java          ← データベースのURLを持つクラス
     │   ├── jdbcTweetDao.java      ← jdbc版ツイートデータアクセスクラス
     │   ├── (UserDAO.java          ← ユーザーCSVアクセスクラス)
     │   └── jdbcUserDAO.java       ← jdbc版ユーザーデータアクセスクラス
     └── servlet/
-        ├── PostServlet.java      ← つぶやき投稿
-        ├── TimelineServlet.java  ← タイムライン表示
-        ├── ProfileServlet.java   ← プロフィール表示
-        ├── EditProfileServlet.java   ← プロフィール編集　追加
-        ├── UserLogin.java        ← ログイン / ログアウト
-        └── RegisterUser.java     ← ユーザー登録
+        ├── PostServlet.java       ← つぶやき投稿
+        ├── EditTweetServlet.java  ← つぶやき編集
+        ├── DeleteServlet.java     ← つぶやき削除
+        ├── TimelineServlet.java   ← タイムライン表示
+        ├── ProfileServlet.java    ← プロフィール表示
+        ├── EditProfileServlet.java← プロフィール編集
+        ├── UserLogin.java         ← ログイン / ログアウト
+        └── RegisterUser.java      ← ユーザー登録
 
 WebContent/
 ├── post.jsp          ← 投稿フォーム（地図付き）
@@ -63,11 +65,13 @@ WebContent/
 └── WEB-INF/
     ├── jsp/
     │   ├── loginForm.jsp         ← ログインページ
+    │   ├── editTweet.jsp         ← つぶやき編集ページ
     │   ├── registerForm.jsp      ← ユーザー登録ページ
     │   ├── registerConfirm.jsp   ← 登録確認ページ
     │   ├── registerDone.jsp      ← 登録完了ページ
-    │   ├── editProfile.jsp       ← 登録情報編集ページ　　追加
-    │   └── editComfirm.jsp       ← 編集確認ページ　　　　追加
+    │   ├── registerDone.jsp      ← 登録完了ページ
+    │   ├── editProfile.jsp       ← 登録情報編集ページ
+    │   └── editComfirm.jsp       ← 編集確認ページ
 （以下はjdbc版で不要）
     └── data/                     ← 手動で作成が必要
         ├── tweets.xml            （初回投稿時に自動生成）
